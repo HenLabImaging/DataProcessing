@@ -1,13 +1,20 @@
-function data=dataread(dir,format,fs,time1,time2,var1,var2)
+function data=dataread(fs,time1,time2,var1,var2)
 % disp(dir)
+ [datafile,data_dir]=uigetfile('.*','Load your data')
+   [pathdata,namedata,format]=fileparts(datafile);
+    
+    
+
 % format=char(format)
 switch format
-    case 'excel'
-        data=xlsread(dir);        
-    case 'text'
-        data=load(dir);
-    case 'matlab'
-        data=load(dir);
+    case '.xlsx'
+        data=xlsread([data_dir datafile]);        
+    case '.txt'
+        data=load([data_dir datafile]);
+    case '.csv'
+        data=load([data_dir datafile]);
+    case '.mat'
+        data=load([data_dir datafile]);
         data=struct2array(data);
 end
 if(size(time1)>0 & size(time2)>0) %#ok<EXIST>

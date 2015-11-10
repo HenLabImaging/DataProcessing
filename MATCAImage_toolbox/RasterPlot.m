@@ -1,5 +1,5 @@
 %%normalization of data Ca Events (0-1 within the channel)
-function data2= RasterPlot(dir,xycell_dir,format,fs,threshold,time1,time2,var1,var2,bw,gaussorder)
+function data2= RasterPlot(threshold,fs,time1,time2,var1,var2,bw,gaussorder)
 
 % sampling_rate=5;
 % 
@@ -34,7 +34,7 @@ function data2= RasterPlot(dir,xycell_dir,format,fs,threshold,time1,time2,var1,v
 % Events=events;
 %   end
 
-newdata=dataread(dir,format,fs,time1,time2,var1,var2);
+newdata=dataread(fs,time1,time2,var1,var2);
 figure(100);clf;subplot(411);pcolor(newdata');shading flat;colormap parula;set(gcf,'Color',[1 1 1]);colorbar
 xlabel('time (sample)','FontSize',16),ylabel('cell','FontSize',16);axis tight
 set(gca,'FontSize',16)
@@ -95,13 +95,16 @@ xlabel('bin(samples)','FontSize',16),ylabel('N of active cells','FontSize',16)
 set(gca,'FontSize',16);axis tight
 title(['PETH bin size= ' num2str(binn) 'samples'],'FontSize',16)
 
+
+[xycell_file xycell_dir]=uigetfile('.*','Load your cell coordinates')
+
 if(size(xycell_dir)>0)
     if(size(gaussorder)>0)
         order=gaussorder;
     else
         order=5;
     end
-xy_cell=load(xycell_dir);
+xy_cell=load([xycell_dir xycell_file]);
 xy_cell=struct2array(xy_cell);
 
 size(binned_signal)
