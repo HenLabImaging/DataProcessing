@@ -1,5 +1,5 @@
 %%normalization of data Ca Events (0-1 within the channel)
-function data2= RasterPlot(threshold,fs,time1,time2,var1,var2,bw,gaussorder)
+function data2= RasterPlot(fs,time1,time2,var1,var2,bw)
 
 % sampling_rate=5;
 % 
@@ -33,19 +33,25 @@ function data2= RasterPlot(threshold,fs,time1,time2,var1,var2,bw,gaussorder)
 % %  [dir2 data_dir2]=uigetfile('*.','Load the Ca SD File','.*');
 % Events=events;
 %   end
-
+menuselect=menu('Select datasets would you like to analyze?','Event','Event+Transients')
+if(menuselect==1)
 newdata=dataread(fs,time1,time2,var1,var2);
-figure(100);clf;subplot(411);pcolor(newdata');shading flat;colormap parula;set(gcf,'Color',[1 1 1]);colorbar
+newdata2=newdata;
+else
+    newdata=dataread(fs,time1,time2,var1,var2);
+    newdata2=dataread(fs,time1,time2,var1,var2);
+end
+figure(100);clf;subplot(411);pcolor(newdata2');shading flat;colormap parula;set(gcf,'Color',[1 1 1]);colorbar
 xlabel('time (sample)','FontSize',16),ylabel('cell','FontSize',16);axis tight
 set(gca,'FontSize',16)
-title(['(' num2str(min(size(newdata))) ') cells in time'],'FontSize',16)
+title(['(' num2str(min(size(newdata2))) ') cells in time'],'FontSize',16)
 
 
-if(exist('threshold')) %#ok<EXIST>
-        for ll=1:min(size(newdata)) 
-        newdata(find(newdata(:,ll)<threshold),ll)=0;
-        end
-end
+% if(exist('threshold')) %#ok<EXIST>
+%         for ll=1:min(size(newdata)) 
+%         newdata(find(newdata(:,ll)<threshold),ll)=0;
+%         end
+% end
 
 
 normraw=[];
@@ -96,33 +102,63 @@ set(gca,'FontSize',16);axis tight
 title(['PETH bin size= ' num2str(binn) 'samples'],'FontSize',16)
 
 
-[xycell_file xycell_dir]=uigetfile('.*','Load your cell coordinates')
 
-if(size(xycell_dir)>0)
-    if(size(gaussorder)>0)
-        order=gaussorder;
-    else
-        order=5;
-    end
-xy_cell=load([xycell_dir xycell_file]);
-xy_cell=struct2array(xy_cell);
 
-size(binned_signal)
-Activecells=sum(binned_signal');
-pop_map=[];
-length(Activecells)
-    for ii=1:length(Activecells);
-        X=xy_cell(ii,1);Y=xy_cell(ii,2);
-        pop_map(X:X+10,Y:Y+10)=Activecells(ii);
-    end
+    imageselect=menu('Image files','YES','NO')
+    
+if(imageselect==1)
+    
+   [imagefile,image_dir]=uigetfile('.*','Load your image file')
+   [pathdata,namedata,format]=fileparts(imagefile);
+    
+   comb_cell=imread([image_dir imagefile]);
+   imagepath=char(inputdlg(['Is file tag without a number ending is true?:' ' '  namedata]));
+   if(isempty(imagepath))
+       imagepath=namedata;
+   end
+   
+       
+   for i=1:min(size(normraw))
+        cell=imread([image_dir imagepath num2str(i) format]);
+        comb_cell=imadd(comb_cell,cell);
+   end
+    comb_cell(find(comb_cell>0))=5;
+    Activecells=sum(binned_signal');
+    
+    for ii=1:min(size(normraw))
+        cell=imread([image_dir imagepath num2str(ii) format]);
+        comb_cell(find(cell>0))=5*Activecells(ii);
+   end
+    
+    
+    figure(100);subplot(414);pcolor(comb_cell);shading interp;colormap jet(20);
+    
+% [xycell_file xycell_dir]=uigetfile('.*','Load your cell coordinates')
+% 
+% if(size(xycell_dir)>0)
+% %     if(size(gaussorder)>0)
+% %         order=gaussorder;
+% %     else
+% %         order=5;
+% %     end
+% xy_cell=load([xycell_dir xycell_file]);
+% xy_cell=round(struct2array(xy_cell));
+% 
+% size(binned_signal)
+% Activecells=sum(binned_signal');
+% pop_map=[];
+% % length(Activecells)
+%     for ii=1:length(Activecells);
+%       figure(100);subplot(414);hold on;scatter(xy_cell(ii,1),xy_cell(ii,2),Activecells(ii)*1e2,'filled')    
+%     end
 
 % h=ones(10,10)/20;
-smoothMap=imgaussfilt(pop_map,order);% 
-% FilteredMapA= imnoise(pop_map,'Gaussian',0.9,0.9);
-% h = fspecial('motion', 10, 10);
-% FilteredMapA = imfilter(pop_map,h);
-figure(100);subplot(414);pcolor(smoothMap);shading flat;colormap jet(100);
-set(gca,'FontSize',16);axis tight;xlabel('pix','FontSize',16);ylabel('pix','FontSize',16);
+% % smoothMap=imgaussfilt(pop_map,order);% 
+% % FilteredMapA= imnoise(pop_map,'Gaussian',0.9,0.9);
+% % h = fspecial('motion', 10, 10);
+% % FilteredMapA = imfilter(pop_map,h);
+% figure(100);subplot(414);surface(pop_map);shading interp;colormap jet(100);
+% set(gca,'FontSize',16);axis tight;xlabel('pix','FontSize',16);ylabel('pix','FontSize',16);axis square
 end
 
 
